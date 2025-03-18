@@ -37,41 +37,69 @@ def get_product_from_api(barcode):
     if not api_key:
         logger.error("JAN Code APIキーが設定されていません")
         return None
+        
+    # バーコードが短すぎる場合はスキップ
+    if len(barcode) < 8:
+        logger.error(f"バーコード番号が短すぎます: {barcode}")
+        return None
     
     # APIエンドポイント
-    api_url = f"https://api.jancodelookup.com/v2/products/{barcode}"
+    api_url = "https://api.jancodelookup.com/v2/products"
     
     # リクエストヘッダー
     headers = {
-        "Authorization": f"Bearer {api_key}",
-        "Accept": "application/json"
+        "Accept": "application/json",
+        "X-Api-Key": api_key
+    }
+    
+    # リクエストパラメータ
+    params = {
+        "jan": barcode
     }
     
     try:
-        logger.debug(f"APIリクエスト: {api_url}")
-        response = requests.get(api_url, headers=headers)
+        logger.debug(f"APIリクエスト: {api_url} パラメータ:{params} ヘッダー:{headers}")
+        response = requests.get(api_url, headers=headers, params=params)
         
         # レスポンスのステータスコードをチェック
         if response.status_code == 200:
             data = response.json()
             logger.debug(f"API応答: {json.dumps(data, indent=2)}")
             
-            # 商品が見つかった場合
-            if data.get("success") and data.get("products"):
-                product = data["products"][0]  # 最初の結果を使用
+            # レスポンスから商品情報を抽出（APIの実際のレスポンス形式に合わせて調整）
+            # ここでは汎用的なアプローチを取る
+            if data and isinstance(data, dict):
+                # 商品データの抽出を試みる（APIによって異なる可能性がある）
+                product_data = None
                 
-                # 必要なフォーマットに変換
-                result = {
-                    "name": product.get("name", "不明"),
-                    "manufacturer": product.get("brand", {}).get("name", "不明"),
-                    "category": product.get("category", {}).get("name", "不明"),
-                    "description": product.get("description", "説明なし")
-                }
-                logger.debug(f"商品情報: {result}")
-                return result
-            else:
-                logger.debug(f"商品が見つかりませんでした: {data}")
-                return None
+                # レスポンスが異なる構造である可能性がある
+                if "products" in data and isinstance(data["products"], list) and data["products"]:
+                    product_data = data["products"][0]
+                elif "product" in data:
+                    product_data = data["product"]
+                elif "item" in data:
+                    product_data = data["item"]
+                else:
+                    # データに製品情報が含まれていると仮定
+                    product_data = data
+                
+                if product_data:
+                    # 必要なフォーマットに変換（フィールド名はAPIによって異なる可能性がある）
+                    result = {
+                        "name": product_data.get("name", product_data.get("product_name", "不明")),
+                        "manufacturer": product_data.get("manufacturer", 
+                                      product_data.get("brand", {}).get("name", "不明") if isinstance(product_data.get("brand"), dict) else 
+                                      product_data.get("brand", "不明")),
+                        "category": product_data.get("category", 
+                                 product_data.get("category", {}).get("name", "不明") if isinstance(product_data.get("category"), dict) else
+                                 "不明"),
+                        "description": product_data.get("description", product_data.get("details", "説明なし"))
+                    }
+                    logger.debug(f"商品情報: {result}")
+                    return result
+            
+            logger.debug(f"商品情報の抽出に失敗しました: {data}")
+            return None
         else:
             logger.error(f"API エラー: {response.status_code} - {response.text}")
             return None
