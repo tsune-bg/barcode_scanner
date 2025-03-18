@@ -48,13 +48,13 @@ def get_product_from_api(barcode):
     
     # リクエストヘッダー
     headers = {
-        "Accept": "application/json",
-        "X-Api-Key": api_key
+        "Accept": "application/json"
     }
     
     # リクエストパラメータ
     params = {
-        "jan": barcode
+        "jan": barcode,
+        "appId": api_key  # APIドキュメントによるとappIdパラメータが必要
     }
     
     try:
