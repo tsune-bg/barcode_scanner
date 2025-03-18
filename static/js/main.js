@@ -68,17 +68,25 @@ document.addEventListener('DOMContentLoaded', function() {
         barcodeNumber.textContent = data.barcode;
         barcodeType.textContent = data.type;
         
+        // Always show the barcode information section
+        resultContainer.classList.remove('d-none');
+        
         if (data.product) {
             // Display product information
             productName.textContent = data.product.name || 'N/A';
             productManufacturer.textContent = data.product.manufacturer || 'N/A';
             productCategory.textContent = data.product.category || 'N/A';
             productDescription.textContent = data.product.description || 'N/A';
-            
-            // Show the result container
-            resultContainer.classList.remove('d-none');
         } else {
-            showError('Product not found in our database');
+            // Show empty values for product information
+            productName.textContent = '商品情報なし';
+            productManufacturer.textContent = '商品情報なし';
+            productCategory.textContent = '商品情報なし';
+            productDescription.textContent = '商品情報なし';
+            
+            // Add a note about missing product info (optional)
+            errorText.textContent = 'このバーコードに一致する商品情報がデータベースに見つかりませんでした。';
+            errorMessage.classList.remove('d-none');
         }
     }
     

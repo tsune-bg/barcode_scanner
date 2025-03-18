@@ -73,18 +73,13 @@ def scan_barcode():
         # Clean up the uploaded file
         os.remove(filepath)
         
-        if not product_info:
-            return jsonify({
-                'barcode': barcode_number,
-                'type': barcode_type,
-                'error': 'Product not found in database'
-            }), 404
-        
+        # Always return barcode info, with or without product info
+        # Change status code to 200 even if product not found
         return jsonify({
             'barcode': barcode_number,
             'type': barcode_type,
-            'product': product_info
-        })
+            'product': product_info  # This will be None if product not found
+        }), 200
         
     except Exception as e:
         logger.error(f"Error processing barcode: {str(e)}")
