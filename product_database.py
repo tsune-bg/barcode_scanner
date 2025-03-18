@@ -68,19 +68,25 @@ def get_product_from_api(barcode):
             data = response.json()
             logger.debug(f"API応答: {json.dumps(data, indent=2)}")
             
-            # JANコード検索APIのレスポンス形式に合わせて結果を処理
+            # 実際のAPIレスポンス形式に合わせて結果を処理
             if data and isinstance(data, dict):
-                # ヒット件数をチェック
-                if data.get("hits") > 0 and "items" in data and isinstance(data["items"], list) and data["items"]:
+                # productフィールドをチェック（レスポンスの実際の構造に基づく）
+                if "product" in data and isinstance(data["product"], list) and data["product"]:
                     # 最初の商品情報を取得
-                    item = data["items"][0]
+                    item = data["product"][0]
+                    
+                    # 詳細情報を抽出
+                    details = ""
+                    if "ProductDetails" in item and isinstance(item["ProductDetails"], dict):
+                        details_dict = item["ProductDetails"]
+                        details = ", ".join([f"{k}: {v}" for k, v in details_dict.items()])
                     
                     # 必要なフォーマットに変換
                     result = {
-                        "name": item.get("name", "不明"),
-                        "manufacturer": item.get("manufacturer", item.get("maker", "不明")),
-                        "category": item.get("category", "不明"),
-                        "description": item.get("description", item.get("abstract", "説明なし"))
+                        "name": item.get("itemName", "不明"),
+                        "manufacturer": item.get("makerName", item.get("brandName", "不明")),
+                        "category": item.get("brandName", "不明"),
+                        "description": details or "説明なし"
                     }
                     logger.debug(f"商品情報: {result}")
                     return result
