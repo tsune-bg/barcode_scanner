@@ -43,17 +43,20 @@ def get_product_from_api(barcode):
         logger.error(f"バーコード番号が短すぎます: {barcode}")
         return None
     
-    # APIエンドポイント - バーコード番号を直接URLに含める
-    api_url = f"https://api.jancodelookup.com/v2/jan/{barcode}"
+    # APIエンドポイント（ドキュメント通り）
+    api_url = "https://api.jancodelookup.com/"
     
     # リクエストヘッダー
     headers = {
         "Accept": "application/json"
     }
     
-    # リクエストパラメータ
+    # リクエストパラメータ（ドキュメント通り）
     params = {
-        "appId": api_key  # APIドキュメントによるとappIdパラメータが必要
+        "appId": api_key,    # アプリID（必須）
+        "query": barcode,    # 検索キーワード（必須）
+        "type": "code",      # 検索タイプ：コード番号限定検索
+        "hits": 1            # 取得件数（1件だけ取得）
     }
     
     try:
@@ -65,34 +68,19 @@ def get_product_from_api(barcode):
             data = response.json()
             logger.debug(f"API応答: {json.dumps(data, indent=2)}")
             
-            # レスポンスから商品情報を抽出（APIの実際のレスポンス形式に合わせて調整）
-            # ここでは汎用的なアプローチを取る
+            # JANコード検索APIのレスポンス形式に合わせて結果を処理
             if data and isinstance(data, dict):
-                # 商品データの抽出を試みる（APIによって異なる可能性がある）
-                product_data = None
-                
-                # レスポンスが異なる構造である可能性がある
-                if "products" in data and isinstance(data["products"], list) and data["products"]:
-                    product_data = data["products"][0]
-                elif "product" in data:
-                    product_data = data["product"]
-                elif "item" in data:
-                    product_data = data["item"]
-                else:
-                    # データに製品情報が含まれていると仮定
-                    product_data = data
-                
-                if product_data:
-                    # 必要なフォーマットに変換（フィールド名はAPIによって異なる可能性がある）
+                # ヒット件数をチェック
+                if data.get("hits") > 0 and "items" in data and isinstance(data["items"], list) and data["items"]:
+                    # 最初の商品情報を取得
+                    item = data["items"][0]
+                    
+                    # 必要なフォーマットに変換
                     result = {
-                        "name": product_data.get("name", product_data.get("product_name", "不明")),
-                        "manufacturer": product_data.get("manufacturer", 
-                                      product_data.get("brand", {}).get("name", "不明") if isinstance(product_data.get("brand"), dict) else 
-                                      product_data.get("brand", "不明")),
-                        "category": product_data.get("category", 
-                                 product_data.get("category", {}).get("name", "不明") if isinstance(product_data.get("category"), dict) else
-                                 "不明"),
-                        "description": product_data.get("description", product_data.get("details", "説明なし"))
+                        "name": item.get("name", "不明"),
+                        "manufacturer": item.get("manufacturer", item.get("maker", "不明")),
+                        "category": item.get("category", "不明"),
+                        "description": item.get("description", item.get("abstract", "説明なし"))
                     }
                     logger.debug(f"商品情報: {result}")
                     return result
