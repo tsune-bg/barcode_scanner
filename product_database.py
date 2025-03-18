@@ -43,8 +43,8 @@ def get_product_from_api(barcode):
         logger.error(f"バーコード番号が短すぎます: {barcode}")
         return None
     
-    # APIエンドポイント
-    api_url = "https://api.jancodelookup.com/v2/products"
+    # APIエンドポイント - バーコード番号を直接URLに含める
+    api_url = f"https://api.jancodelookup.com/v2/jan/{barcode}"
     
     # リクエストヘッダー
     headers = {
@@ -53,7 +53,6 @@ def get_product_from_api(barcode):
     
     # リクエストパラメータ
     params = {
-        "jan": barcode,
         "appId": api_key  # APIドキュメントによるとappIdパラメータが必要
     }
     
