@@ -7,7 +7,3 @@ uv.lock
 
 # OS
 .DS_Store
-
-# Replit
-.replit
-replit.nix
