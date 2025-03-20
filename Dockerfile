@@ -8,6 +8,6 @@ COPY . .
 RUN apt-get update && apt-get install -y libzbar0 libgl1-mesa-glx
 RUN uv sync --frozen
 
-EXPOSE 5000
+EXPOSE 8080
 
-CMD ["uv", "run", "gunicorn", "--bind", "0.0.0.0:5000", "app:app"]
+CMD ["uv", "run", "gunicorn", "--bind", "0.0.0.0:8080", "app:app"]
