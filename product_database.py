@@ -3,6 +3,10 @@ import os
 import requests
 import json
 
+from dotenv import load_dotenv
+
+load_dotenv(dotenv_path=".env")
+
 logger = logging.getLogger(__name__)
 
 # フォールバック用の内部データベース（APIが利用できない場合に使用）
