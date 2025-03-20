@@ -39,8 +39,8 @@
 ### Docker での起動
 
 1.  Docker イメージをビルド: `docker build -t barcode_scanner .`
-2.  Docker コンテナを実行: `docker run -p 5001:5001 barcode_scanner`
-3.  アプリケーションをブラウザで開く: `http://localhost:5001`
+2.  Docker コンテナを実行: `docker run -p 5000:5000 barcode_scanner`
+3.  アプリケーションをブラウザで開く: `http://localhost:5000`
 
 ## ライセンス
 
