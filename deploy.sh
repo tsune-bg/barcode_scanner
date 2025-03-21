@@ -3,8 +3,6 @@ set -e
 
 # .env ファイルから変数を読み込む
 if [ -f .env ]; then
-  # .env がシェル形式になっている場合は "source" でもOK
-  # ここではコメント行を除去してエクスポートしています
   export $(grep -v '^#' .env | xargs)
 else
   echo ".env file not found"
